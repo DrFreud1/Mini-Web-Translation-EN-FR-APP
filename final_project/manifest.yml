@@ -1,5 +1,5 @@
 ---
 applications:
- - name: ibmlearner_translation_app
+ - name: DrFreud1 Translator App
    random-random: true
    memory: 64M
