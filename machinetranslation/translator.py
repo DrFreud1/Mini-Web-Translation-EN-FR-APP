@@ -1,47 +1,41 @@
-'''
-Python translator module that uses Watson IBM API
-'''
+"""
+Python translator module that uses AWS Translation API
+"""
 
-import os
-from ibm_watson import LanguageTranslatorV3
-from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
-from dotenv import load_dotenv
+import boto3
+from botocore.exceptions import ParamValidationError
 
-load_dotenv()
 
-def instance_watson_translator():
-    '''Instantiate IBM Translator'''
-    apikey = os.environ['apikey']
-    url = os.environ['url']
-    version='2018-05-01'
-
-    authenticator = IAMAuthenticator(apikey)
-    language_translator = LanguageTranslatorV3(
-        version = version,
-        authenticator = authenticator
+def instance_aws_translator(text: str, source_lang: str, translated_lang: str) -> str:
+    translate = boto3.client(
+        service_name="translate", region_name="us-east-1", use_ssl=True
     )
-    language_translator.set_service_url(url)
 
-    return language_translator
+    result = translate.translate_text(
+        Text=text, SourceLanguageCode=source_lang, TargetLanguageCode=translated_lang
+    )
+    return result.get("TranslatedText", "")
 
-def english_to_french(english_text):
-    '''Translate text from english to french'''
+
+def english_to_french(english_text: str) -> str:
+    """Translate text from english to french"""
     try:
-        translation = instance_watson_translator().translate(
-            text = english_text,
-            model_id = 'en-fr').get_result()
-
-        return translation['translations'][0]['translation']
-    except ValueError:
+        return instance_aws_translator(english_text, "en", "fr")
+    except ParamValidationError:
         return "You didn't enter any text"
 
-def french_to_english(french_text):
-    '''Translate text from french to english'''
-    try:
-        translation = instance_watson_translator().translate(
-            text = french_text,
-            model_id = 'fr-en').get_result()
 
-        return translation['translations'][0]['translation']
-    except ValueError:
+def english_to_spanish(english_text: str) -> str:
+    """Translate text from english to spanish"""
+    try:
+        return instance_aws_translator(english_text, "en", "es")
+    except ParamValidationError:
+        return "You didn't enter any text"
+
+
+def french_to_english(french_text):
+    """Translate text from french to english"""
+    try:
+        return instance_aws_translator(french_text, "fr", "en")
+    except ParamValidationError:
         return "Vous n'avez entré aucun texte"
